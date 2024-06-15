@@ -5,7 +5,7 @@ local J = require("jq_tools.jq")
 
 
 function plugin.live_query(buf, start_line, end_line)
-    return view.live_query(buf, start_line, end_line, M.opts.live_query)
+    return view.live_query(buf, start_line, end_line, plugin.opts.live_query)
 end
 
 local function with_defaults(opts)
@@ -37,10 +37,10 @@ local function with_defaults(opts)
 end
 
 function plugin.setup(opts)
-    M.opts = with_defaults(opts)
+    plugin.opts = with_defaults(opts)
 
-    if not vim.fn.executable(M.opts.jq.program) then
-        vim.notify("Please make sure `" .. M.opts.jq.program .. "` is executable.", vim.log.levels.ERROR)
+    if not vim.fn.executable(plugin.opts.jq.program) then
+        vim.notify("Please make sure `" .. plugin.opts.jq.program .. "` is executable.", vim.log.levels.ERROR)
         return false
     end
 
@@ -65,7 +65,7 @@ function plugin.setup(opts)
                 return
             end
             if filtered then
-                view.show_query_output(filtered, M.opts.result)
+                view.show_query_output(filtered, plugin.opts.result)
             end
         else
             plugin.live_query(vim.api.nvim_get_current_buf(), lines[1], lines[2])
