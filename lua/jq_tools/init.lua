@@ -14,12 +14,12 @@ local function with_defaults(opts)
             program = "jq",
         },
         live_query = {
-            height = 0.66,
-            ratio  =  0.33,
-            input_title = "Query Input",
+            height       = 0.66,
+            ratio        = 0.33,
+            input_title  = "Query Input",
             output_title = "Query Output",
-            callback = function (bu, bi, bo) end,
-            winopts = {
+            callback     = function(bufnum, entry_bufnumb, output_bufnum) end,
+            winopts      = {
                 style = "minimal",
                 border = "rounded",
             },
@@ -75,6 +75,5 @@ function plugin.setup(opts)
         range = 2,
     })
 end
-
 
 return plugin

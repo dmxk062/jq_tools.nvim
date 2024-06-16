@@ -66,17 +66,23 @@ function M.live_query(buf, line1, line2, opts)
     })
 
 
+    local function on_close()
+        pcall(function()
+            vim.api.nvim_win_close(entry_win, true)
+            vim.api.nvim_win_close(output_win, true)
+            vim.api.nvim_buf_delete(entry_buf, { force = true })
+            vim.api.nvim_buf_delete(output_buf, { force = true })
+        end)
+    end
     vim.api.nvim_create_autocmd("WinClosed", {
         buffer = entry_buf,
         once = true,
-        callback = function()
-            pcall(function() 
-                vim.api.nvim_win_close(entry_win, true)
-                vim.api.nvim_win_close(output_win, true)
-                vim.api.nvim_buf_delete(entry_buf, { force = true })
-                vim.api.nvim_buf_delete(output_buf, { force = true })
-            end)
-        end
+        callback = on_close,
+    })
+    vim.api.nvim_create_autocmd("WinClosed", {
+        buffer = output_buf,
+        once = true,
+        callback = on_close,
     })
 
     opts.callback(buf, entry_buf, output_buf)
@@ -92,15 +98,24 @@ function M.live_query(buf, line1, line2, opts)
             }
         }
     }
-    vim.api.nvim_create_autocmd("TextChangedI", {
+    vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
         buffer = entry_buf,
         callback = function()
             local lines = vim.api.nvim_buf_get_lines(entry_buf, 0, -1, false)
+
+            local query = {}
+            for i, statement in ipairs(lines) do
+                if vim.startswith(statement, "#raw") then
+                    query = {"-r"}
+                end
+            end
+
             local filter = table.concat(lines, "\n")
             if #filter == 0 then
                 filter = "."
             end
-            local filtered, err = J.jq_query_lines(buf, line1, line2, { filter })
+            vim.list_extend(query, {"--", filter})
+            local filtered, err = J.jq_query_lines(buf, line1, line2, query)
             local text
             if err then
                 text = vim.split(err or "", "\n")
